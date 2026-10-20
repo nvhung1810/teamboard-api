@@ -1,7 +1,7 @@
 {
   "name": "teamboard-api",
   "version": "1.0.0",
-  "description": "Hướng dẫn dựng từ đầu một REST API quản lý **Board** và **Task**, có CRUD đầy đủ, validate dữ liệu, xử lý lỗi tập trung và test qua Swagger UI.",
+  "description": "REST API for managing **Boards** and **Tasks**, with full CRUD, data validation, centralized error handling and Swagger UI.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

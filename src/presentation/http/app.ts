@@ -31,7 +31,7 @@ export function createApp({ boardController, taskController }: AppDependencies) 
   app.use('/api/boards', createBoardRoutes(boardController));
   app.use('/api/tasks', createTaskRoutes(taskController));
 
-  // Hai middleware này phải đặt cuối cùng
+  // These two middlewares must be registered last
   app.use(notFoundHandler);
   app.use(errorHandler);
 

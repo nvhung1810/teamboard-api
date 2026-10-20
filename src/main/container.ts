@@ -14,7 +14,7 @@ import { UpdateTaskUseCase } from '../application/use-cases/task/update-task.use
 import { BoardController } from '../presentation/http/controllers/board.controller';
 import { TaskController } from '../presentation/http/controllers/task.controller';
 
-// Composition root: nơi duy nhất biết implementation cụ thể của các interface
+// Composition root: the only place that knows the concrete implementations of the interfaces
 const boardRepository = new PrismaBoardRepository(prisma);
 const taskRepository = new PrismaTaskRepository(prisma);
 

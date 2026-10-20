@@ -6,7 +6,7 @@ export class DeleteBoardUseCase {
 
   async execute(id: number) {
     if (!(await this.boards.exists(id))) {
-      throw new NotFoundError(`Không tìm thấy board có id = ${id}`);
+      throw new NotFoundError(`Board not found with id = ${id}`);
     }
     await this.boards.delete(id);
   }

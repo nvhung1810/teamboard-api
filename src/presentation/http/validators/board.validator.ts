@@ -4,15 +4,15 @@ export const createBoardSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Tên board không được để trống')
-    .max(100, 'Tên board tối đa 100 ký tự'),
+    .min(1, 'Board name must not be empty')
+    .max(100, 'Board name must be at most 100 characters'),
   description: z.string().max(1000).nullable().optional(),
 });
 
 export const updateBoardSchema = createBoardSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: 'Cần gửi ít nhất một trường để cập nhật',
+    message: 'At least one field is required to update',
   });
 
 export type CreateBoardInput = z.infer<typeof createBoardSchema>;

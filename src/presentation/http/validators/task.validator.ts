@@ -7,19 +7,19 @@ export const createTaskSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, 'Tiêu đề không được để trống')
-    .max(200, 'Tiêu đề tối đa 200 ký tự'),
+    .min(1, 'Title must not be empty')
+    .max(200, 'Title must be at most 200 characters'),
   description: z.string().max(5000).nullable().optional(),
   status: taskStatusSchema.optional(),
   priority: prioritySchema.optional(),
   dueDate: z.coerce.date().nullable().optional(),
-  boardId: z.number().int().positive('boardId phải là số nguyên dương'),
+  boardId: z.number().int().positive('boardId must be a positive integer'),
 });
 
 export const updateTaskSchema = createTaskSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: 'Cần gửi ít nhất một trường để cập nhật',
+    message: 'At least one field is required to update',
   });
 
 export const taskQuerySchema = z.object({

@@ -9,35 +9,35 @@ const idParam = {
   schema: { type: 'integer', minimum: 1 },
 };
 
-const badRequest = { description: 'Dữ liệu không hợp lệ', content: jsonBody(ref('ValidationError')) };
-const notFound = { description: 'Không tìm thấy', content: jsonBody(ref('Error')) };
+const badRequest = { description: 'Invalid data', content: jsonBody(ref('ValidationError')) };
+const notFound = { description: 'Not found', content: jsonBody(ref('Error')) };
 
 export const swaggerSpec = {
   openapi: '3.0.3',
   info: {
     title: 'TeamBoard API',
     version: '1.0.0',
-    description: 'API quản lý Board và Task — Express + TypeScript + Prisma + MySQL',
+    description: 'Board and Task management API - Express + TypeScript + Prisma + MySQL',
   },
   tags: [
-    { name: 'Boards', description: 'Quản lý board' },
-    { name: 'Tasks', description: 'Quản lý task' },
+    { name: 'Boards', description: 'Manage boards' },
+    { name: 'Tasks', description: 'Manage tasks' },
   ],
   paths: {
     '/api/boards': {
       get: {
         tags: ['Boards'],
-        summary: 'Lấy danh sách board',
+        summary: 'List boards',
         responses: {
           200: { description: 'OK', content: jsonBody({ type: 'array', items: ref('BoardWithCount') }) },
         },
       },
       post: {
         tags: ['Boards'],
-        summary: 'Tạo board mới',
+        summary: 'Create a new board',
         requestBody: { required: true, content: jsonBody(ref('BoardCreate')) },
         responses: {
-          201: { description: 'Đã tạo', content: jsonBody(ref('Board')) },
+          201: { description: 'Created', content: jsonBody(ref('Board')) },
           400: badRequest,
         },
       },
@@ -46,7 +46,7 @@ export const swaggerSpec = {
       parameters: [idParam],
       get: {
         tags: ['Boards'],
-        summary: 'Xem chi tiết board (kèm task)',
+        summary: 'Get board details (with tasks)',
         responses: {
           200: { description: 'OK', content: jsonBody(ref('BoardDetail')) },
           400: badRequest,
@@ -55,19 +55,19 @@ export const swaggerSpec = {
       },
       put: {
         tags: ['Boards'],
-        summary: 'Cập nhật board',
+        summary: 'Update a board',
         requestBody: { required: true, content: jsonBody(ref('BoardUpdate')) },
         responses: {
-          200: { description: 'Đã cập nhật', content: jsonBody(ref('Board')) },
+          200: { description: 'Updated', content: jsonBody(ref('Board')) },
           400: badRequest,
           404: notFound,
         },
       },
       delete: {
         tags: ['Boards'],
-        summary: 'Xoá board (xoá luôn các task bên trong)',
+        summary: 'Delete a board (also deletes its tasks)',
         responses: {
-          204: { description: 'Đã xoá' },
+          204: { description: 'Deleted' },
           400: badRequest,
           404: notFound,
         },
@@ -76,7 +76,7 @@ export const swaggerSpec = {
     '/api/tasks': {
       get: {
         tags: ['Tasks'],
-        summary: 'Lấy danh sách task',
+        summary: 'List tasks',
         parameters: [
           { name: 'boardId', in: 'query', schema: { type: 'integer', minimum: 1 } },
           { name: 'status', in: 'query', schema: { type: 'string', enum: ['TODO', 'IN_PROGRESS', 'DONE'] } },
@@ -89,12 +89,12 @@ export const swaggerSpec = {
       },
       post: {
         tags: ['Tasks'],
-        summary: 'Tạo task mới',
+        summary: 'Create a new task',
         requestBody: { required: true, content: jsonBody(ref('TaskCreate')) },
         responses: {
-          201: { description: 'Đã tạo', content: jsonBody(ref('Task')) },
+          201: { description: 'Created', content: jsonBody(ref('Task')) },
           400: badRequest,
-          404: { description: 'Board không tồn tại', content: jsonBody(ref('Error')) },
+          404: { description: 'Board does not exist', content: jsonBody(ref('Error')) },
         },
       },
     },
@@ -102,7 +102,7 @@ export const swaggerSpec = {
       parameters: [idParam],
       get: {
         tags: ['Tasks'],
-        summary: 'Xem chi tiết task',
+        summary: 'Get task details',
         responses: {
           200: { description: 'OK', content: jsonBody(ref('Task')) },
           400: badRequest,
@@ -111,19 +111,19 @@ export const swaggerSpec = {
       },
       put: {
         tags: ['Tasks'],
-        summary: 'Cập nhật task',
+        summary: 'Update a task',
         requestBody: { required: true, content: jsonBody(ref('TaskUpdate')) },
         responses: {
-          200: { description: 'Đã cập nhật', content: jsonBody(ref('Task')) },
+          200: { description: 'Updated', content: jsonBody(ref('Task')) },
           400: badRequest,
           404: notFound,
         },
       },
       delete: {
         tags: ['Tasks'],
-        summary: 'Xoá task',
+        summary: 'Delete a task',
         responses: {
-          204: { description: 'Đã xoá' },
+          204: { description: 'Deleted' },
           400: badRequest,
           404: notFound,
         },
@@ -137,7 +137,7 @@ export const swaggerSpec = {
         properties: {
           id: { type: 'integer', example: 1 },
           name: { type: 'string', example: 'Sprint 1' },
-          description: { type: 'string', nullable: true, example: 'Các việc của sprint đầu tiên' },
+          description: { type: 'string', nullable: true, example: 'Tasks for the first sprint' },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' },
         },
@@ -164,13 +164,13 @@ export const swaggerSpec = {
         required: ['name'],
         properties: {
           name: { type: 'string', maxLength: 100, example: 'Sprint 1' },
-          description: { type: 'string', nullable: true, example: 'Các việc của sprint đầu tiên' },
+          description: { type: 'string', nullable: true, example: 'Tasks for the first sprint' },
         },
       },
       BoardUpdate: {
         type: 'object',
         properties: {
-          name: { type: 'string', maxLength: 100, example: 'Sprint 1 (đã sửa)' },
+          name: { type: 'string', maxLength: 100, example: 'Sprint 1 (edited)' },
           description: { type: 'string', nullable: true },
         },
       },
@@ -178,7 +178,7 @@ export const swaggerSpec = {
         type: 'object',
         properties: {
           id: { type: 'integer', example: 1 },
-          title: { type: 'string', example: 'Thiết kế database' },
+          title: { type: 'string', example: 'Design the database' },
           description: { type: 'string', nullable: true },
           status: { type: 'string', enum: ['TODO', 'IN_PROGRESS', 'DONE'] },
           priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
@@ -192,8 +192,8 @@ export const swaggerSpec = {
         type: 'object',
         required: ['title', 'boardId'],
         properties: {
-          title: { type: 'string', maxLength: 200, example: 'Thiết kế database' },
-          description: { type: 'string', nullable: true, example: 'Vẽ ERD cho Board và Task' },
+          title: { type: 'string', maxLength: 200, example: 'Design the database' },
+          description: { type: 'string', nullable: true, example: 'Draw the ERD for Board and Task' },
           status: { type: 'string', enum: ['TODO', 'IN_PROGRESS', 'DONE'], example: 'TODO' },
           priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'], example: 'HIGH' },
           dueDate: { type: 'string', format: 'date-time', nullable: true, example: '2026-12-31T17:00:00.000Z' },
@@ -213,19 +213,19 @@ export const swaggerSpec = {
       },
       Error: {
         type: 'object',
-        properties: { message: { type: 'string', example: 'Không tìm thấy board có id = 99' } },
+        properties: { message: { type: 'string', example: 'Board not found with id = 99' } },
       },
       ValidationError: {
         type: 'object',
         properties: {
-          message: { type: 'string', example: 'Dữ liệu không hợp lệ' },
+          message: { type: 'string', example: 'Invalid data' },
           errors: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
                 field: { type: 'string', example: 'name' },
-                message: { type: 'string', example: 'Tên board không được để trống' },
+                message: { type: 'string', example: 'Board name must not be empty' },
               },
             },
           },

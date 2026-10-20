@@ -7,7 +7,7 @@ export class UpdateBoardUseCase {
 
   async execute(id: number, input: UpdateBoardInput) {
     if (!(await this.boards.exists(id))) {
-      throw new NotFoundError(`Không tìm thấy board có id = ${id}`);
+      throw new NotFoundError(`Board not found with id = ${id}`);
     }
     return this.boards.update(id, input);
   }

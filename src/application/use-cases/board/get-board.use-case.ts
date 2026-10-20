@@ -6,7 +6,7 @@ export class GetBoardUseCase {
 
   async execute(id: number) {
     const board = await this.boards.findById(id);
-    if (!board) throw new NotFoundError(`Không tìm thấy board có id = ${id}`);
+    if (!board) throw new NotFoundError(`Board not found with id = ${id}`);
     return board;
   }
 }

@@ -1,112 +1,112 @@
-# Kiến trúc dự án TeamBoard API
+# TeamBoard API Architecture
 
-Dự án áp dụng **Clean Architecture** với 4 lớp: Domain, Application, Infrastructure, Presentation.
+The project follows **Clean Architecture** with four layers: Domain, Application, Infrastructure and Presentation.
 
-## 1. Quy tắc phụ thuộc
+## 1. Dependency rule
 
-Phụ thuộc chỉ đi **từ ngoài vào trong**. Lớp trong không biết gì về lớp ngoài.
+Dependencies point **from the outside in**. Inner layers know nothing about outer layers.
 
 ```
 Presentation ─┐
               ├─▶ Application ─▶ Domain
 Infrastructure┘                    ▲
-        └──────────────────────────┘  (implement interface của Domain)
+        └──────────────────────────┘  (implements Domain interfaces)
 ```
 
-| Lớp | Được import | Không được import |
+| Layer | May import | Must not import |
 |---|---|---|
-| Domain | (không gì cả) | Application, Infrastructure, Presentation, Prisma, Express |
+| Domain | (nothing) | Application, Infrastructure, Presentation, Prisma, Express |
 | Application | Domain | Infrastructure, Presentation, Prisma, Express |
 | Infrastructure | Domain, Prisma | Application, Presentation |
-| Presentation | Application, Domain, Express, Zod | Use case do chính nó tạo (nhận qua constructor) |
+| Presentation | Application, Domain, Express, Zod | Concrete implementations (use cases arrive via constructors) |
 
-## 2. Cấu trúc thư mục
+## 2. Directory structure
 
 ```
 src/
 ├── domain/
-│   ├── entities/        # Board, Task, kiểu input/filter (plain TypeScript)
-│   ├── repositories/    # interface BoardRepository, TaskRepository
+│   ├── entities/        # Board, Task, input/filter types (plain TypeScript)
+│   ├── repositories/    # BoardRepository, TaskRepository interfaces
 │   └── errors/          # NotFoundError
 ├── application/
 │   └── use-cases/
 │       ├── board/       # get-boards, get-board, create, update, delete
 │       └── task/        # get-tasks, get-task, create, update, delete
 ├── infrastructure/
-│   ├── database/        # PrismaClient dùng chung
+│   ├── database/        # shared PrismaClient
 │   └── repositories/    # PrismaBoardRepository, PrismaTaskRepository
 ├── presentation/
 │   └── http/
-│       ├── controllers/ # nhận request, gọi use case, trả response
-│       ├── routes/      # factory createBoardRoutes / createTaskRoutes
-│       ├── validators/  # schema Zod cho params, query, body
-│       ├── middlewares/ # error handler, not found handler
+│       ├── controllers/ # receive the request, call a use case, send the response
+│       ├── routes/      # createBoardRoutes / createTaskRoutes factories
+│       ├── validators/  # Zod schemas for params, query and body
+│       ├── middlewares/ # error handler, not-found handler
 │       ├── docs/        # Swagger spec
-│       └── app.ts       # createApp(): dựng Express app
+│       └── app.ts       # createApp(): builds the Express app
 └── main/
     ├── container.ts     # composition root
     └── server.ts        # entry point: listen, graceful shutdown
 ```
 
-## 3. Vai trò từng lớp
+## 3. Layer responsibilities
 
 ### Domain
-Lõi nghiệp vụ, thuần TypeScript.
-- **Entities**: `Board`, `Task`, `TaskStatus`, `Priority`, cùng các biến thể như `BoardWithTaskCount`, `TaskWithBoard`.
-- **Repository interfaces**: hợp đồng truy cập dữ liệu (`findAll`, `findById`, `exists`, `create`, `update`, `delete`). Domain chỉ khai báo, không biết dữ liệu lưu ở đâu.
-- **Errors**: `NotFoundError` biểu diễn lỗi nghiệp vụ, không gắn với HTTP.
+The business core, pure TypeScript.
+- **Entities**: `Board`, `Task`, `TaskStatus`, `Priority`, plus variants such as `BoardWithTaskCount` and `TaskWithBoard`.
+- **Repository interfaces**: the data-access contract (`findAll`, `findById`, `exists`, `create`, `update`, `delete`). The domain only declares them and does not know where data is stored.
+- **Errors**: `NotFoundError` represents a business error and is not tied to HTTP.
 
 ### Application
-Chứa các **use case**, mỗi class làm đúng một việc và có một method `execute`.
-- Nhận repository qua constructor (dependency injection) dưới dạng interface.
-- Chứa luật nghiệp vụ, ví dụ: tạo hoặc sửa task phải kiểm tra board tồn tại; sửa hoặc xoá phải kiểm tra bản ghi tồn tại, nếu không ném `NotFoundError`.
+Contains the **use cases**. Each class does exactly one thing and exposes one `execute` method.
+- Repositories are injected through the constructor as interfaces.
+- Holds the business rules, for example: creating or updating a task requires the board to exist; updating or deleting requires the record to exist, otherwise `NotFoundError` is thrown.
 
 ### Infrastructure
-Chi tiết kỹ thuật bên ngoài.
-- `PrismaBoardRepository` và `PrismaTaskRepository` implement interface của Domain bằng Prisma + MySQL.
-- Đây là nơi duy nhất truy vấn DB. Việc đổi ORM hoặc DB chỉ ảnh hưởng thư mục này và `container.ts`.
+External technical details.
+- `PrismaBoardRepository` and `PrismaTaskRepository` implement the Domain interfaces with Prisma + MySQL.
+- This is the only place that queries the database. Swapping the ORM or database only affects this folder and `container.ts`.
 
 ### Presentation
-Giao tiếp HTTP.
-- **Validators** (Zod) kiểm tra và ép kiểu dữ liệu đầu vào trước khi chuyển cho use case.
-- **Controllers** là class nhận use case qua constructor, không chứa logic nghiệp vụ.
-- **Error middleware** chuyển lỗi thành HTTP response:
+HTTP communication.
+- **Validators** (Zod) validate and coerce input before it reaches a use case.
+- **Controllers** are classes that receive use cases through their constructor and contain no business logic.
+- **Error middleware** turns errors into HTTP responses:
 
-| Lỗi | Status |
+| Error | Status |
 |---|---|
 | `ZodError` | 400 |
 | `NotFoundError` | 404 |
 | Prisma `P2025` | 404 |
 | Prisma `P2003` | 400 |
-| JSON body sai | 400 |
-| Lỗi khác | 500 |
+| Malformed JSON body | 400 |
+| Anything else | 500 |
 
-- Controller map `taskCount` của domain thành `_count.tasks` để giữ nguyên shape response của API.
+- The board controller maps the domain's `taskCount` to `_count.tasks` to keep the API response shape unchanged.
 
 ### Main (composition root)
-`container.ts` là nơi duy nhất biết implementation cụ thể: tạo Prisma repository, inject vào use case, inject use case vào controller. `server.ts` gọi `createApp()` rồi lắng nghe cổng.
+`container.ts` is the only place that knows the concrete implementations: it creates the Prisma repositories, injects them into use cases, and injects use cases into controllers. `server.ts` calls `createApp()` and starts listening.
 
-## 4. Luồng một request
+## 4. Lifecycle of a request
 
 `POST /api/tasks`
 
-1. Route chuyển tới `TaskController.create`.
-2. Controller validate body bằng `createTaskSchema` (Zod).
-3. Controller gọi `CreateTaskUseCase.execute(data)`.
-4. Use case hỏi `BoardRepository.exists(boardId)`; nếu không có thì ném `NotFoundError`.
-5. Use case gọi `TaskRepository.create(data)`, thực thi bởi `PrismaTaskRepository`.
-6. Controller trả `201` kèm task vừa tạo. Nếu có lỗi, error middleware xử lý.
+1. The route forwards to `TaskController.create`.
+2. The controller validates the body with `createTaskSchema` (Zod).
+3. The controller calls `CreateTaskUseCase.execute(data)`.
+4. The use case asks `BoardRepository.exists(boardId)` and throws `NotFoundError` if the board is missing.
+5. The use case calls `TaskRepository.create(data)`, implemented by `PrismaTaskRepository`.
+6. The controller responds `201` with the created task. Any error is handled by the error middleware.
 
-## 5. Thêm một tính năng mới
+## 5. Adding a new feature
 
-1. Thêm entity hoặc kiểu input và method repository vào `domain/`.
-2. Viết use case trong `application/use-cases/`.
-3. Implement method trong repository ở `infrastructure/repositories/`.
-4. Thêm validator, controller, route và cập nhật Swagger trong `presentation/http/`.
-5. Nối dependency trong `main/container.ts`.
+1. Add the entity or input type and the repository method in `domain/`.
+2. Write the use case in `application/use-cases/`.
+3. Implement the method in `infrastructure/repositories/`.
+4. Add the validator, controller and route, and update Swagger, in `presentation/http/`.
+5. Wire the dependencies in `main/container.ts`.
 
-## 6. Lợi ích
+## 6. Benefits
 
-- **Dễ test**: use case test được bằng repository giả, không cần DB hay Express.
-- **Dễ thay đổi**: đổi Prisma sang ORM khác, hoặc Express sang framework khác, không động tới nghiệp vụ.
-- **Ranh giới rõ ràng**: mỗi file có đúng một trách nhiệm và vị trí dễ đoán.
+- **Testable**: use cases can be tested with fake repositories, without a database or Express.
+- **Easy to change**: replacing Prisma with another ORM, or Express with another framework, does not touch the business logic.
+- **Clear boundaries**: every file has a single responsibility and a predictable location.

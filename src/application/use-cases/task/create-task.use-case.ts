@@ -11,7 +11,7 @@ export class CreateTaskUseCase {
 
   async execute(input: CreateTaskInput) {
     if (!(await this.boards.exists(input.boardId))) {
-      throw new NotFoundError(`Không tìm thấy board có id = ${input.boardId}`);
+      throw new NotFoundError(`Board not found with id = ${input.boardId}`);
     }
     return this.tasks.create(input);
   }

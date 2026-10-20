@@ -8,7 +8,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const app = createApp({ boardController, taskController });
 
 const server = app.listen(PORT, () => {
-  console.log(`Server chạy tại http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
   console.log(`Swagger UI:     http://localhost:${PORT}/api-docs`);
 });
 

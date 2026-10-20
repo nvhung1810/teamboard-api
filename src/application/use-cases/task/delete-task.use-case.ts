@@ -6,7 +6,7 @@ export class DeleteTaskUseCase {
 
   async execute(id: number) {
     if (!(await this.tasks.exists(id))) {
-      throw new NotFoundError(`Không tìm thấy task có id = ${id}`);
+      throw new NotFoundError(`Task not found with id = ${id}`);
     }
     await this.tasks.delete(id);
   }

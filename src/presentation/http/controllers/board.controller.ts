@@ -18,7 +18,7 @@ export class BoardController {
 
   getAll = async (_req: Request, res: Response) => {
     const boards = await this.getBoards.execute();
-    // Giữ nguyên shape response: số lượng task nằm trong `_count.tasks`
+    // Keep the response shape unchanged: the task count lives in `_count.tasks`
     res.json(boards.map(({ taskCount, ...board }) => ({ ...board, _count: { tasks: taskCount } })));
   };
 

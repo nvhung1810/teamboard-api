@@ -11,10 +11,10 @@ export class UpdateTaskUseCase {
 
   async execute(id: number, input: UpdateTaskInput) {
     if (!(await this.tasks.exists(id))) {
-      throw new NotFoundError(`Không tìm thấy task có id = ${id}`);
+      throw new NotFoundError(`Task not found with id = ${id}`);
     }
     if (input.boardId !== undefined && !(await this.boards.exists(input.boardId))) {
-      throw new NotFoundError(`Không tìm thấy board có id = ${input.boardId}`);
+      throw new NotFoundError(`Board not found with id = ${input.boardId}`);
     }
     return this.tasks.update(id, input);
   }
