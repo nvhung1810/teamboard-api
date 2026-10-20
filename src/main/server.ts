@@ -1,8 +1,11 @@
 import 'dotenv/config';
-import app from './app';
-import { prisma } from './lib/prisma';
+import { createApp } from '../presentation/http/app';
+import { prisma } from '../infrastructure/database/prisma';
+import { boardController, taskController } from './container';
 
 const PORT = Number(process.env.PORT) || 3000;
+
+const app = createApp({ boardController, taskController });
 
 const server = app.listen(PORT, () => {
   console.log(`Server chạy tại http://localhost:${PORT}`);

@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
-import { HttpError } from '../utils/http-error';
+import { NotFoundError } from '../../../domain/errors/not-found.error';
 
 export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json({ message: `Không tồn tại route ${req.method} ${req.originalUrl}` });
@@ -20,9 +20,9 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  // Lỗi tự ném trong service
-  if (err instanceof HttpError) {
-    res.status(err.status).json({ message: err.message });
+  // Không tìm thấy tài nguyên (ném từ use case)
+  if (err instanceof NotFoundError) {
+    res.status(404).json({ message: err.message });
     return;
   }
 
