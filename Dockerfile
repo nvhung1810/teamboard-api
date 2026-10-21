@@ -28,4 +28,5 @@ COPY --chown=node:node prisma ./prisma
 
 USER node
 EXPOSE 8080
-CMD ["node", "dist/main/server.js"]
+# Apply pending migrations, then start (prisma CLI is a prod dependency for this)
+CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy && node dist/main/server.js"]

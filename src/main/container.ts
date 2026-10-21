@@ -33,3 +33,7 @@ export const taskController = new TaskController(
   new UpdateTaskUseCase(taskRepository, boardRepository),
   new DeleteTaskUseCase(taskRepository),
 );
+
+export async function checkDatabase(): Promise<void> {
+  await prisma.$queryRaw`SELECT 1`;
+}

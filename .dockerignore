@@ -4,9 +4,10 @@ dist
 .env
 .env.*
 !.env.example
+!.env.*.example
 *.log
 .DS_Store
 docs
 Dockerfile
 .dockerignore
-docker-compose.yml
+docker-compose*.yml

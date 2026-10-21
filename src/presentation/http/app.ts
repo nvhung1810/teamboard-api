@@ -11,13 +11,24 @@ import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
 export interface AppDependencies {
   boardController: BoardController;
   taskController: TaskController;
+  /** Resolves when the database answers, rejects otherwise. */
+  checkDatabase: () => Promise<void>;
 }
 
-export function createApp({ boardController, taskController }: AppDependencies) {
+export function createApp({ boardController, taskController, checkDatabase }: AppDependencies) {
   const app = express();
 
   app.use(cors());
   app.use(express.json());
+
+  app.get('/health', async (_req, res) => {
+    try {
+      await checkDatabase();
+      res.status(200).json({ status: 'Healthy', database: 'Healthy' });
+    } catch {
+      res.status(503).json({ status: 'Unhealthy', database: 'Unhealthy' });
+    }
+  });
 
   app.get('/', (_req, res) => {
     res.redirect('/api-docs');

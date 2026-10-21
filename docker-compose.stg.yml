@@ -1,0 +1,14 @@
+# Staging: production-like. Built locally or pulled from a registry; DB is NOT exposed to the host.
+name: teamboard-stg
+
+services:
+  db:
+    restart: unless-stopped
+  api:
+    build: .
+    image: ${API_IMAGE:-teamboard-api:stg}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: staging
+    ports:
+      - "${API_PORT:-8081}:8080"
