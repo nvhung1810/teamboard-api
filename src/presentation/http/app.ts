@@ -1,0 +1,50 @@
+import express from 'express';
+import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import { createBoardRoutes } from './routes/board.routes';
+import { createTaskRoutes } from './routes/task.routes';
+import type { BoardController } from './controllers/board.controller';
+import type { TaskController } from './controllers/task.controller';
+import { swaggerSpec } from './docs/swagger';
+import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
+
+export interface AppDependencies {
+  boardController: BoardController;
+  taskController: TaskController;
+  /** Resolves when the database answers, rejects otherwise. */
+  checkDatabase: () => Promise<void>;
+}
+
+export function createApp({ boardController, taskController, checkDatabase }: AppDependencies) {
+  const app = express();
+
+  app.use(cors());
+  app.use(express.json());
+
+  app.get('/health', async (_req, res) => {
+    try {
+      await checkDatabase();
+      res.status(200).json({ status: 'Healthy', database: 'Healthy' });
+    } catch {
+      res.status(503).json({ status: 'Unhealthy', database: 'Unhealthy' });
+    }
+  });
+
+  app.get('/', (_req, res) => {
+    res.redirect('/api-docs');
+  });
+
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api-docs.json', (_req, res) => {
+    res.json(swaggerSpec);
+  });
+
+  app.use('/api/boards', createBoardRoutes(boardController));
+  app.use('/api/tasks', createTaskRoutes(taskController));
+
+  // These two middlewares must be registered last
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  return app;
+}
