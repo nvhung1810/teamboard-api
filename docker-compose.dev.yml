@@ -1,0 +1,15 @@
+# Development: build locally, expose DB and API to the host for tools (Prisma Studio, SQL clients).
+name: teamboard-dev
+
+services:
+  db:
+    restart: "no"
+    ports:
+      - "${DB_PORT:-3306}:3306"
+  api:
+    build: .
+    restart: "no"
+    environment:
+      NODE_ENV: development
+    ports:
+      - "${API_PORT:-8080}:8080"
